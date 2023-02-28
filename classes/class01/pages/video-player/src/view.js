@@ -11,10 +11,10 @@ export default class View {
     this.#btnInit.disabled = false;
   }
 
-  touglePlayVideo() {
+  togglePlayVideo() {
     if (this.#videoElement.paused) {
       this.#videoElement.play();
-      return
+      return;
     }
     this.#videoElement.pause();
   }

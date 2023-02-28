@@ -1,11 +1,9 @@
-
-export default class Controller{
+export default class Controller {
   #view;
-  #service;
   #camera;
   #worker;
   #blinkCounter = 0;
-  constructor({view, service, worker, camera}){
+  constructor({ view, worker, camera }) {
     this.#view = view;
     this.#camera = camera;
     this.#worker = this.#configureWorker(worker);
@@ -13,56 +11,54 @@ export default class Controller{
     this.#view.configureOnBtnClick(this.onBtnStart.bind(this));
   }
 
-  static async initialize(deps){
+  static async initialize(deps) {
     const controller = new Controller(deps);
-    controller.log("not yet detecting eye blink");
+    controller.log("not yet detecting eye blink! click in the button to start");
     return controller.init();
   }
 
-  #configureWorker(worker){
+  #configureWorker(worker) {
     let ready = false;
     worker.onmessage = ({ data }) => {
-      console.log("Worker received message", data);
-      if(data === "READY"){
-        console.log("Worker is ready");
-        this.#view.enableButton()
+      if ("READY" === data) {
+        console.log("worker is ready!");
+        this.#view.enableButton();
         ready = true;
         return;
       }
       const blinked = data.blinked;
       this.#blinkCounter += blinked;
-      this.#view.touglePlayVideo()
-      console.log("Blinked", blinked);
-    }
+      this.#view.togglePlayVideo();
+      console.log("blinked", blinked);
+    };
+
     return {
-      send (data){
-        if(!ready) return;
-        worker.postMessage(data);
-      }
+      send(msg) {
+        if (!ready) return;
+        worker.postMessage(msg);
+      },
     };
   }
 
-  async init(){
+  async init() {
     console.log("Controller initialized");
   }
 
-  loop(){
+  loop() {
     const video = this.#camera.video;
     const img = this.#view.getVideoFrame(video);
-
     this.#worker.send(img);
-    this.log(`Detecting eye blink: ${this.#blinkCounter}`);
-
-    setTimeout(() => this.loop, 100);
+    this.log(`detecting eye blink...`);
+    setTimeout(() => this.loop(), 100);
   }
 
-  log(text){
-    const times = `  - blinked times: ${this.#blinkCounter}`
-    this.#view.log(`status: ${times}`.concat(this.#blinkCounter ? times : ""));
+  log(text) {
+    const times = `      - blinked times: ${this.#blinkCounter}`;
+    this.#view.log(`status: ${text}`.concat(this.#blinkCounter ? times : ""));
   }
 
-  onBtnStart(){
-    this.log("initializing detecting eye blink");
+  onBtnStart() {
+    this.log("initializing detection...");
     this.#blinkCounter = 0;
     this.loop();
   }

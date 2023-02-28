@@ -13,8 +13,9 @@ tf.setBackend("webgl");
 const service = new Service({
   faceLandmarksDetection,
 });
+console.log("Loading tf Model...");
 await service.loadModel();
-console.log("tf Model loaded");
+console.log("tf Model loaded!");
 
 postMessage("READY");
 
